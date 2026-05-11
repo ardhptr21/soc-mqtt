@@ -57,8 +57,8 @@ export function EventFeed({ events, filter, onFilterChange }: EventFeedProps) {
                       {event.description}
                     </p>
                     <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-                      {event.source_ip || '—'} → {event.dest_ip || '—'}:{event.port || '—'}
-                      <span className="mx-1.5 text-border">·</span>
+                      {event.source_ip || '—'} <span className="text-lime-500/50">→</span> {event.dest_ip || '—'}:{event.port || '—'}
+                      <span className="mx-1.5 text-purple-500/30">·</span>
                       {event.topic}
                     </p>
                   </div>

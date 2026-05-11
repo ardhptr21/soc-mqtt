@@ -19,10 +19,10 @@ interface SeverityChartProps {
 }
 
 const severityColors: Record<string, string> = {
-  low: '#c4b5fd',      // light violet
-  medium: '#a78bfa',   // mid violet
-  high: '#7c3aed',     // deep violet
-  critical: '#4c1d95', // darkest violet
+  low: '#84cc16',      // lime
+  medium: '#a3e635',   // brighter lime
+  high: '#a78bfa',     // violet
+  critical: '#7c3aed', // deep violet
 };
 
 const threatColors = [
@@ -99,9 +99,9 @@ export function SeverityChart({ stats }: SeverityChartProps) {
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={eventsPerMinute}>
               <defs>
-                <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#84cc16" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#84cc16" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid
@@ -128,13 +128,13 @@ export function SeverityChart({ stats }: SeverityChartProps) {
               <Area
                 type="monotone"
                 dataKey="count"
-                stroke="#8b5cf6"
+                stroke="#84cc16"
                 strokeWidth={2}
-                fill="url(#purpleGradient)"
+                fill="url(#chartGradient)"
                 dot={false}
                 activeDot={{
                   r: 4,
-                  fill: '#8b5cf6',
+                  fill: '#84cc16',
                   stroke: '#0a0a0f',
                   strokeWidth: 2,
                 }}
@@ -215,14 +215,10 @@ export function SeverityChart({ stats }: SeverityChartProps) {
                     key={sev}
                     className="rounded-xl border border-border/40 bg-background/50 p-4"
                   >
-                    <div className="flex items-center justify-between">
+                    <div>
                       <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {sev}
                       </span>
-                      <span
-                        className="h-2 w-2 rounded-full"
-                        style={{ backgroundColor: color }}
-                      />
                     </div>
                     <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
                       {count}

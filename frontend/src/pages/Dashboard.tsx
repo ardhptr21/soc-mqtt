@@ -56,7 +56,7 @@ export function Dashboard() {
                 onClick={() => setSection(item.key)}
                 className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] transition-all duration-150 ${
                   section === item.key
-                    ? 'bg-white/[0.07] font-medium text-foreground'
+                    ? 'bg-lime-400/[0.08] font-medium text-lime-300/90'
                     : 'text-muted-foreground hover:text-foreground/70'
                 }`}
               >
@@ -71,13 +71,15 @@ export function Dashboard() {
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
                   socketStatus === 'open'
-                    ? 'bg-emerald-400'
+                    ? 'bg-lime-400'
                     : socketStatus === 'connecting'
-                    ? 'bg-amber-400'
+                    ? 'bg-purple-400 animate-pulse'
                     : 'bg-white/20'
                 }`}
               />
-              {socketStatus === 'open' ? 'Live' : socketStatus}
+              <span className={socketStatus === 'open' ? 'text-lime-400/80' : ''}>
+                {socketStatus === 'open' ? 'Live' : socketStatus}
+              </span>
             </span>
 
             <div className="h-4 w-px bg-border/30" />
@@ -127,22 +129,22 @@ export function Dashboard() {
                 <ThreatCounter
                   title="Total Events"
                   value={loading ? '—' : stats.total_events.toLocaleString()}
-                  accent="a"
+                  accent="purple"
                 />
                 <ThreatCounter
                   title="Critical"
                   value={criticalCount}
-                  accent="b"
+                  accent="purple"
                 />
                 <ThreatCounter
                   title="Blocked IPs"
                   value={blacklist.length || stats.blocked_ips}
-                  accent="c"
+                  accent="purple"
                 />
                 <ThreatCounter
                   title="Agents Online"
                   value={`${onlineAgents} / ${Math.max(agents.length, 4)}`}
-                  accent="d"
+                  accent="lime"
                 />
               </section>
 

@@ -4,17 +4,15 @@ interface ThreatCounterProps {
   title: string;
   value: string | number;
   caption?: string;
-  accent?: 'a' | 'b' | 'c' | 'd';
+  accent?: 'purple' | 'lime';
 }
 
 const dotColor = {
-  a: 'bg-purple-400',
-  b: 'bg-purple-500',
-  c: 'bg-purple-300',
-  d: 'bg-purple-200',
+  purple: 'bg-purple-400',
+  lime: 'bg-lime-400',
 };
 
-export function ThreatCounter({ title, value, caption, accent = 'a' }: ThreatCounterProps) {
+export function ThreatCounter({ title, value, caption, accent = 'purple' }: ThreatCounterProps) {
   return (
     <Card className="transition-colors duration-200 hover:bg-white/[0.02]">
       <CardContent className="p-5">

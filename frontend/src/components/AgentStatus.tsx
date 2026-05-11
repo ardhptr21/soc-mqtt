@@ -50,7 +50,7 @@ export function AgentStatus({ agents, events }: AgentStatusProps) {
                 <div className="flex items-center gap-3 min-w-0">
                   <span
                     className={`h-2 w-2 shrink-0 rounded-full ${
-                      online ? 'bg-emerald-400' : 'bg-white/10'
+                      online ? 'bg-lime-400' : 'bg-white/10'
                     }`}
                   />
                   <div className="min-w-0">
