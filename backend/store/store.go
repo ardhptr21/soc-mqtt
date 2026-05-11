@@ -66,6 +66,13 @@ func (s *Store) SetAgentStatus(name, status string) models.AgentStatus {
 	return agent
 }
 
+func (s *Store) GetAgent(name string) (models.AgentStatus, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	agent, ok := s.agents[name]
+	return agent, ok
+}
+
 func (s *Store) Agents() []models.AgentStatus {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

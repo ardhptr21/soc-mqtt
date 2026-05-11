@@ -40,6 +40,11 @@ func StartSOCDashboard(ctx context.Context, brokerURL string, store *store.Store
 			return
 		}
 
+		// Chaos engineering: if agent is explicitly offline, drop the event
+		if agent, exists := store.GetAgent(event.Agent); exists && agent.Status == "offline" {
+			return
+		}
+
 		store.AddEvent(event)
 		hub.Broadcast(models.WSMessage{Type: "new_event", Payload: event})
 		log.Printf("[subscriber:dashboard] %s %s %s", event.Severity, event.Type, event.SourceIP)

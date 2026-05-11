@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import type { AgentStatus as Agent, SecurityEvent } from '../lib/types';
-import { chaosToggle, triggerKillChain } from '../lib/api';
+import { chaosToggle } from '../lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
 
 const expectedAgents = ['firewall', 'ids', 'honeypot', 'host', 'edr', 'dns'];
 
@@ -13,7 +12,6 @@ interface AgentStatusProps {
 
 export function AgentStatus({ agents, events }: AgentStatusProps) {
   const [busy, setBusy] = useState<string | null>(null);
-  const [killChainBusy, setKillChainBusy] = useState(false);
 
   const counts = events.reduce<Record<string, number>>((acc, event) => {
     const key = event.agent || 'unknown';
@@ -44,15 +42,6 @@ export function AgentStatus({ agents, events }: AgentStatusProps) {
     }
   };
 
-  const launchKillChain = async () => {
-    setKillChainBusy(true);
-    try {
-      await triggerKillChain();
-    } finally {
-      setKillChainBusy(false);
-    }
-  };
-
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between space-y-0 pb-4">
@@ -62,14 +51,6 @@ export function AgentStatus({ agents, events }: AgentStatusProps) {
             {onlineCount} of {normalized.length} online · Toggle agents to simulate failures
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => void launchKillChain()}
-          disabled={killChainBusy}
-        >
-          {killChainBusy ? 'Launching...' : 'Trigger Kill Chain'}
-        </Button>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
