@@ -14,7 +14,7 @@ export function ThreatCounter({ title, value, caption }: ThreatCounterProps) {
         <CardTitle className="text-muted-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-semibold tracking-normal text-foreground">{value}</div>
+        <div className="text-3xl font-semibold tracking-tight text-foreground">{value}</div>
         {caption ? <p className="mt-1 text-xs text-muted-foreground">{caption}</p> : null}
       </CardContent>
     </Card>

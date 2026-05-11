@@ -37,7 +37,7 @@ export function AgentStatus({ agents, events }: AgentStatusProps) {
             return (
               <div
                 key={agent.name}
-                className="flex min-h-20 items-center justify-between gap-3 rounded-md border border-border bg-background/60 px-3"
+                className="flex min-h-20 items-center justify-between gap-3 rounded-xl border border-border bg-background/10 px-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium capitalize">{agent.name}</p>

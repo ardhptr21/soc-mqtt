@@ -5,10 +5,10 @@ const variants = {
   default: 'border-transparent bg-primary text-primary-foreground',
   secondary: 'border-transparent bg-secondary text-secondary-foreground',
   outline: 'border-border text-foreground',
-  low: 'border-emerald-200 bg-emerald-50 text-emerald-800',
-  medium: 'border-amber-200 bg-amber-50 text-amber-800',
-  high: 'border-orange-200 bg-orange-50 text-orange-800',
-  critical: 'border-red-200 bg-red-50 text-red-800',
+  low: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200',
+  medium: 'border-amber-500/40 bg-amber-500/15 text-amber-200',
+  high: 'border-orange-500/40 bg-orange-500/15 text-orange-200',
+  critical: 'border-red-500/40 bg-red-500/15 text-red-200',
 };
 
 type BadgeVariant = keyof typeof variants;

@@ -17,7 +17,7 @@ interface SeverityChartProps {
   stats: Stats;
 }
 
-const threatColors = ['#111827', '#374151', '#6b7280', '#9ca3af', '#d1d5db', '#e5e7eb'];
+const threatColors = ['#7c3aed', '#0ea5e9', '#f97316', '#22c55e', '#eab308', '#ef4444'];
 
 export function SeverityChart({ stats }: SeverityChartProps) {
   const eventsPerMinute = stats.events_per_min.map((point) => ({
@@ -49,7 +49,13 @@ export function SeverityChart({ stats }: SeverityChartProps) {
                   borderRadius: 8,
                 }}
               />
-              <Line type="monotone" dataKey="count" stroke="#111827" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="count"
+                stroke="#7c3aed"
+                strokeWidth={2.5}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>

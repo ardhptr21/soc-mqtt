@@ -42,13 +42,14 @@ export function Dashboard() {
   return (
     <main className="h-screen bg-background text-foreground">
       <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-center lg:justify-between">
+        <header className="flex flex-col gap-4 border-b border-border/60 pb-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-normal">SOC Dashboard</h1>
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">SOC Console</p>
+            <h1 className="text-3xl font-semibold tracking-tight">SOC Dashboard</h1>
             <p className="text-sm text-muted-foreground">MQTT security simulator monitoring</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex h-9 items-center gap-2 rounded-md border border-border px-3 text-sm">
+            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card/70 px-3 text-sm">
               <span
                 className={
                   socketStatus === 'open'
@@ -65,13 +66,17 @@ export function Dashboard() {
         </header>
 
         <div className="grid flex-1 items-start gap-6 lg:grid-cols-[220px_1fr]">
-          <aside className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3">
+          <aside className="flex flex-col gap-2 rounded-2xl border border-border bg-card/90 p-3">
             {sectionButtons.map((item) => (
               <Button
                 key={item.key}
                 type="button"
-                variant={section === item.key ? 'default' : 'outline'}
-                className="justify-start"
+                variant={section === item.key ? 'secondary' : 'ghost'}
+                className={
+                  section === item.key
+                    ? 'justify-start border border-border bg-accent text-foreground shadow-sm'
+                    : 'justify-start text-muted-foreground'
+                }
                 onClick={() => setSection(item.key)}
               >
                 <item.icon className="h-4 w-4" />

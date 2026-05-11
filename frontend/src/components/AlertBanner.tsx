@@ -8,7 +8,7 @@ interface AlertBannerProps {
 
 export function AlertBanner({ event, socketStatus }: AlertBannerProps) {
   return (
-    <div className="flex min-h-14 flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex min-h-14 flex-col gap-3 rounded-2xl border border-border bg-card/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
         <p className="truncate text-sm font-medium text-foreground">
           {event ? event.description : 'No critical alert in current session'}
