@@ -1,15 +1,21 @@
 import { useState } from 'react';
-import { BarChart3, ListChecks, Server, ShieldAlert } from 'lucide-react';
+import { BarChart3, ListChecks, Server, ShieldAlert, RefreshCw } from 'lucide-react';
 import { AlertBanner } from '../components/AlertBanner';
 import { AgentStatus } from '../components/AgentStatus';
 import { BlacklistPanel } from '../components/BlacklistPanel';
 import { EventFeed } from '../components/EventFeed';
 import { SeverityChart } from '../components/SeverityChart';
 import { ThreatCounter } from '../components/ThreatCounter';
-import { Button } from '../components/ui/button';
 import { useEvents } from '../hooks/useEvents';
 
 type SectionKey = 'overview' | 'agents' | 'events' | 'blacklist';
+
+const sections: { key: SectionKey; label: string; icon: typeof ShieldAlert }[] = [
+  { key: 'overview', label: 'Overview', icon: BarChart3 },
+  { key: 'agents', label: 'Agents', icon: Server },
+  { key: 'events', label: 'Events', icon: ListChecks },
+  { key: 'blacklist', label: 'Blacklist', icon: ShieldAlert },
+];
 
 export function Dashboard() {
   const [section, setSection] = useState<SectionKey>('overview');
@@ -32,96 +38,129 @@ export function Dashboard() {
 
   const criticalCount = stats.by_severity.critical ?? 0;
 
-  const sectionButtons: { key: SectionKey; label: string; icon: typeof ShieldAlert }[] = [
-    { key: 'overview', label: 'Overview', icon: BarChart3 },
-    { key: 'agents', label: 'Agents', icon: Server },
-    { key: 'events', label: 'Events', icon: ListChecks },
-    { key: 'blacklist', label: 'Blacklist', icon: ShieldAlert },
-  ];
-
   return (
-    <main className="h-screen bg-background text-foreground">
-      <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:px-8">
-        <header className="flex flex-col gap-4 border-b border-border/60 pb-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">SOC Console</p>
-            <h1 className="text-3xl font-semibold tracking-tight">SOC Dashboard</h1>
-            <p className="text-sm text-muted-foreground">MQTT security simulator monitoring</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex h-9 items-center gap-2 rounded-full border border-border bg-card/70 px-3 text-sm">
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col px-5 py-5 sm:px-8">
+        {/* ─── Header ─── */}
+        <header className="relative flex items-center border-b border-border/30 pb-5">
+          <h1 className="text-[15px] font-semibold tracking-tight text-foreground">
+            SOC CONSOLE
+          </h1>
+
+          {/* Pill nav — centered */}
+          <nav className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-0.5 rounded-full border border-border/30 p-1 sm:flex">
+            {sections.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setSection(item.key)}
+                className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] transition-all duration-150 ${
+                  section === item.key
+                    ? 'bg-white/[0.07] font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground/70'
+                }`}
+              >
+                <item.icon className="h-3.5 w-3.5" />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex items-center gap-3">
+            <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <span
-                className={
+                className={`h-1.5 w-1.5 rounded-full ${
                   socketStatus === 'open'
-                    ? 'h-2 w-2 rounded-full bg-emerald-500'
-                    : 'h-2 w-2 rounded-full bg-slate-400'
-                }
+                    ? 'bg-emerald-400'
+                    : socketStatus === 'connecting'
+                    ? 'bg-amber-400'
+                    : 'bg-white/20'
+                }`}
               />
-              {socketStatus === 'open' ? 'LIVE' : socketStatus}
+              {socketStatus === 'open' ? 'Live' : socketStatus}
             </span>
-            <Button variant="outline" onClick={() => void refresh()}>
+
+            <div className="h-4 w-px bg-border/30" />
+
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <RefreshCw className="h-3 w-3" />
               Refresh
-            </Button>
+            </button>
           </div>
         </header>
 
-        <div className="grid flex-1 items-start gap-6 lg:grid-cols-[220px_1fr]">
-          <aside className="flex flex-col gap-2 rounded-2xl border border-border bg-card/90 p-3">
-            {sectionButtons.map((item) => (
-              <Button
-                key={item.key}
-                type="button"
-                variant={section === item.key ? 'secondary' : 'ghost'}
-                className={
-                  section === item.key
-                    ? 'justify-start border border-border bg-accent text-foreground shadow-sm'
-                    : 'justify-start text-muted-foreground'
-                }
-                onClick={() => setSection(item.key)}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.label}
-              </Button>
-            ))}
-          </aside>
+        {/* Mobile nav */}
+        <nav className="flex items-center gap-0.5 overflow-x-auto border-b border-border/20 py-2 sm:hidden">
+          {sections.map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => setSection(item.key)}
+              className={`shrink-0 rounded-full px-3 py-1.5 text-[13px] transition-colors ${
+                section === item.key
+                  ? 'bg-white/[0.07] font-medium text-foreground'
+                  : 'text-muted-foreground'
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
 
-          <div className="flex min-h-0 flex-col gap-5 overflow-auto">
-            {error ? (
-              <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground">
-                {error}
-              </div>
-            ) : null}
+        {/* ─── Content ─── */}
+        <div className="flex flex-col gap-5 pt-6 pb-10">
+          {error && (
+            <div className="rounded-xl border border-red-500/15 bg-red-500/[0.03] px-4 py-3 text-sm text-red-400/90">
+              {error}
+            </div>
+          )}
 
-            {section === 'overview' ? (
-              <>
-                <AlertBanner event={lastCritical} socketStatus={socketStatus} />
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                  <ThreatCounter
-                    title="Total Events"
-                    value={loading ? '...' : stats.total_events.toLocaleString()}
-                  />
-                  <ThreatCounter title="Critical Alerts" value={criticalCount} />
-                  <ThreatCounter
-                    title="Blocked IPs"
-                    value={blacklist.length || stats.blocked_ips}
-                  />
-                  <ThreatCounter
-                    title="Agents Online"
-                    value={`${onlineAgents}/${Math.max(agents.length, 4)}`}
-                  />
-                </section>
-                <SeverityChart stats={stats} />
-              </>
-            ) : null}
+          {section === 'overview' && (
+            <>
+              <AlertBanner event={lastCritical} socketStatus={socketStatus} />
 
-            {section === 'agents' ? <AgentStatus agents={agents} events={events} /> : null}
-            {section === 'events' ? (
-              <EventFeed events={events} filter={filter} onFilterChange={setFilter} />
-            ) : null}
-            {section === 'blacklist' ? (
-              <BlacklistPanel entries={blacklist} onAdd={addManualBlock} onDelete={deleteBlock} />
-            ) : null}
-          </div>
+              <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <ThreatCounter
+                  title="Total Events"
+                  value={loading ? '—' : stats.total_events.toLocaleString()}
+                  accent="a"
+                />
+                <ThreatCounter
+                  title="Critical"
+                  value={criticalCount}
+                  accent="b"
+                />
+                <ThreatCounter
+                  title="Blocked IPs"
+                  value={blacklist.length || stats.blocked_ips}
+                  accent="c"
+                />
+                <ThreatCounter
+                  title="Agents Online"
+                  value={`${onlineAgents} / ${Math.max(agents.length, 4)}`}
+                  accent="d"
+                />
+              </section>
+
+              <SeverityChart stats={stats} />
+            </>
+          )}
+
+          {section === 'agents' && (
+            <AgentStatus agents={agents} events={events} />
+          )}
+
+          {section === 'events' && (
+            <EventFeed events={events} filter={filter} onFilterChange={setFilter} />
+          )}
+
+          {section === 'blacklist' && (
+            <BlacklistPanel entries={blacklist} onAdd={addManualBlock} onDelete={deleteBlock} />
+          )}
         </div>
       </div>
     </main>

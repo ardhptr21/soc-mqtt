@@ -17,7 +17,10 @@ export function EventFeed({ events, filter, onFilterChange }: EventFeedProps) {
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between gap-3">
-        <CardTitle>Live Event Feed</CardTitle>
+        <div className="flex items-center gap-2.5">
+          <CardTitle className="text-base">Events</CardTitle>
+          <span className="text-xs tabular-nums text-muted-foreground">{events.length}</span>
+        </div>
         <Select
           value={filter}
           onChange={(event) => onFilterChange(event.target.value as Severity | 'all')}
@@ -31,34 +34,37 @@ export function EventFeed({ events, filter, onFilterChange }: EventFeedProps) {
         </Select>
       </CardHeader>
       <CardContent>
-        <div className="max-h-[34rem] overflow-auto rounded-md border border-border">
+        <div className="max-h-[36rem] overflow-auto rounded-xl border border-border/30">
           {sortedEvents.length === 0 ? (
             <div className="flex h-32 items-center justify-center text-sm text-muted-foreground">
               No events received yet
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/20">
               {sortedEvents.map((event) => (
                 <div
                   key={event.id}
-                  className="grid gap-3 px-4 py-3 md:grid-cols-[8rem_1fr_8rem] md:items-center"
+                  className="grid gap-2.5 px-4 py-3 transition-colors hover:bg-white/[0.015] md:grid-cols-[6.5rem_1fr_7.5rem] md:items-center"
                 >
                   <div className="flex items-center gap-2">
                     <Badge variant={event.severity}>{event.severity}</Badge>
-                    <span className="text-xs text-muted-foreground">QoS {event.qos}</span>
+                    <span className="text-[10px] tabular-nums text-muted-foreground/60">
+                      Q{event.qos}
+                    </span>
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
+                    <p className="truncate text-sm text-foreground/90">
                       {event.description}
                     </p>
-                    <p className="mt-1 truncate font-mono text-xs text-muted-foreground">
-                      {event.source_ip || 'unknown'} {'->'} {event.dest_ip || 'n/a'}:
-                      {event.port || '-'} · {event.topic}
+                    <p className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                      {event.source_ip || '—'} → {event.dest_ip || '—'}:{event.port || '—'}
+                      <span className="mx-1.5 text-border">·</span>
+                      {event.topic}
                     </p>
                   </div>
-                  <div className="text-left text-xs text-muted-foreground md:text-right">
-                    <p>{event.agent}</p>
-                    <p>{new Date(event.timestamp).toLocaleTimeString()}</p>
+                  <div className="text-left text-[11px] text-muted-foreground md:text-right">
+                    <p className="capitalize text-foreground/50">{event.agent}</p>
+                    <p className="tabular-nums">{new Date(event.timestamp).toLocaleTimeString()}</p>
                   </div>
                 </div>
               ))}

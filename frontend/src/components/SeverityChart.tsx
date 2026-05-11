@@ -1,14 +1,15 @@
+import { useMemo } from 'react';
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
+  Area,
+  AreaChart,
 } from 'recharts';
 import type { Stats } from '../lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -17,82 +18,235 @@ interface SeverityChartProps {
   stats: Stats;
 }
 
-const threatColors = ['#7c3aed', '#0ea5e9', '#f97316', '#22c55e', '#eab308', '#ef4444'];
+const severityColors: Record<string, string> = {
+  low: '#c4b5fd',      // light violet
+  medium: '#a78bfa',   // mid violet
+  high: '#7c3aed',     // deep violet
+  critical: '#4c1d95', // darkest violet
+};
+
+const threatColors = [
+  '#8b5cf6',
+  '#a78bfa',
+  '#7c3aed',
+  '#c084fc',
+  '#6d28d9',
+  '#ddd6fe',
+  '#5b21b6',
+];
 
 export function SeverityChart({ stats }: SeverityChartProps) {
-  const eventsPerMinute = stats.events_per_min.map((point) => ({
-    time: new Date(point.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    count: point.count,
-  }));
+  const eventsPerMinute = useMemo(
+    () =>
+      stats.events_per_min.map((point) => ({
+        time: new Date(point.time).toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        count: point.count,
+      })),
+    [stats.events_per_min],
+  );
 
-  const threatsByType = Object.entries(stats.by_type)
-    .map(([type, count]) => ({ type: type.replaceAll('_', ' '), count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 7);
+  const threatsByType = useMemo(
+    () =>
+      Object.entries(stats.by_type)
+        .map(([type, count]) => ({ type: type.replaceAll('_', ' '), count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 7),
+    [stats.by_type],
+  );
+
+  const severityData = useMemo(
+    () =>
+      Object.entries(stats.by_severity)
+        .filter(([, count]) => count > 0)
+        .map(([severity, count]) => ({
+          severity,
+          count,
+          fill: severityColors[severity] ?? '#8b5cf6',
+        })),
+    [stats.by_severity],
+  );
+
+  const tooltipStyle = {
+    background: '#141418',
+    border: '1px solid rgba(255,255,255,0.08)',
+    borderRadius: 10,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+    fontSize: 12,
+    padding: '8px 12px',
+    color: '#e4e4e7',
+  };
+
+  const tooltipLabelStyle = { color: '#a1a1aa', marginBottom: 2 };
+  const tooltipItemStyle = { color: '#e4e4e7' };
+  const tooltipCursor = { fill: 'rgba(255,255,255,0.03)' };
 
   return (
     <div className="grid gap-4 xl:grid-cols-2">
+      {/* Events per minute — Area chart */}
       <Card>
         <CardHeader>
-          <CardTitle>Events Per Minute</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Events Per Minute</CardTitle>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {eventsPerMinute.length} data points
+            </span>
+          </div>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={eventsPerMinute}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-              <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" tickLine={false} />
-              <YAxis allowDecimals={false} stroke="hsl(var(--muted-foreground))" tickLine={false} />
-              <Tooltip
-                contentStyle={{
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: 8,
-                }}
+            <AreaChart data={eventsPerMinute}>
+              <defs>
+                <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="hsl(240 4% 14%)"
+                vertical={false}
               />
-              <Line
+              <XAxis
+                dataKey="time"
+                stroke="hsl(240 5% 35%)"
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+              />
+              <YAxis
+                allowDecimals={false}
+                stroke="hsl(240 5% 35%)"
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+                width={32}
+              />
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} cursor={tooltipCursor} />
+              <Area
                 type="monotone"
                 dataKey="count"
-                stroke="#7c3aed"
-                strokeWidth={2.5}
+                stroke="#8b5cf6"
+                strokeWidth={2}
+                fill="url(#purpleGradient)"
                 dot={false}
+                activeDot={{
+                  r: 4,
+                  fill: '#8b5cf6',
+                  stroke: '#0a0a0f',
+                  strokeWidth: 2,
+                }}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
 
+      {/* Threats by type — Horizontal Bar */}
       <Card>
         <CardHeader>
-          <CardTitle>Threats By Type</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">Threats By Type</CardTitle>
+            <span className="text-xs tabular-nums text-muted-foreground">
+              top {threatsByType.length}
+            </span>
+          </div>
         </CardHeader>
         <CardContent className="h-72">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={threatsByType} layout="vertical" margin={{ left: 16 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-              <XAxis type="number" allowDecimals={false} stroke="hsl(var(--muted-foreground))" />
+            <BarChart
+              data={threatsByType}
+              layout="vertical"
+              margin={{ left: 8, right: 8 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="hsl(240 4% 14%)"
+                horizontal={false}
+              />
+              <XAxis
+                type="number"
+                allowDecimals={false}
+                stroke="hsl(240 5% 35%)"
+                tickLine={false}
+                axisLine={false}
+                fontSize={11}
+              />
               <YAxis
                 type="category"
                 dataKey="type"
-                width={104}
-                stroke="hsl(var(--muted-foreground))"
+                width={100}
+                stroke="hsl(240 5% 35%)"
                 tickLine={false}
+                axisLine={false}
+                fontSize={11}
               />
-              <Tooltip
-                contentStyle={{
-                  background: 'hsl(var(--card))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: 8,
-                }}
-              />
-              <Bar dataKey="count" radius={[0, 6, 6, 0]}>
+              <Tooltip contentStyle={tooltipStyle} labelStyle={tooltipLabelStyle} itemStyle={tooltipItemStyle} cursor={tooltipCursor} />
+              <Bar dataKey="count" radius={[0, 6, 6, 0]} barSize={20}>
                 {threatsByType.map((entry, index) => (
-                  <Cell key={entry.type} fill={threatColors[index % threatColors.length]} />
+                  <Cell
+                    key={entry.type}
+                    fill={threatColors[index % threatColors.length]}
+                  />
                 ))}
               </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
+
+      {/* Severity breakdown */}
+      {severityData.length > 0 && (
+        <Card className="xl:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-base">Severity Breakdown</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {['low', 'medium', 'high', 'critical'].map((sev) => {
+                const count = stats.by_severity[sev] ?? 0;
+                const total = stats.total_events || 1;
+                const pct = Math.round((count / total) * 100);
+                const color = severityColors[sev] ?? '#8b5cf6';
+                return (
+                  <div
+                    key={sev}
+                    className="rounded-xl border border-border/40 bg-background/50 p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {sev}
+                      </span>
+                      <span
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: color }}
+                      />
+                    </div>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-foreground">
+                      {count}
+                    </p>
+                    <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+                      <div
+                        className="h-full rounded-full transition-all duration-700"
+                        style={{
+                          width: `${pct}%`,
+                          backgroundColor: color,
+                          opacity: 0.7,
+                        }}
+                      />
+                    </div>
+                    <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+                      {pct}% of total
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

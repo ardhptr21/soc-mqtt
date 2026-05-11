@@ -4,6 +4,9 @@ export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
@@ -34,11 +37,37 @@ export default {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        purple: {
+          50: 'hsl(var(--purple-50))',
+          100: 'hsl(var(--purple-100))',
+          200: 'hsl(var(--purple-200))',
+          300: 'hsl(var(--purple-300))',
+          400: 'hsl(var(--purple-400))',
+          500: 'hsl(var(--purple-500))',
+          600: 'hsl(var(--purple-600))',
+          700: 'hsl(var(--purple-700))',
+          800: 'hsl(var(--purple-800))',
+          900: 'hsl(var(--purple-900))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      keyframes: {
+        'slide-up': {
+          '0%': { opacity: '0', transform: 'translateY(8px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+      },
+      animation: {
+        'slide-up': 'slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+        'fade-in': 'fade-in 0.5s ease-out',
       },
     },
   },

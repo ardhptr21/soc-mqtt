@@ -2,13 +2,13 @@ import type { HTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
 
 const variants = {
-  default: 'border-transparent bg-primary text-primary-foreground',
+  default: 'border-transparent bg-primary/15 text-primary',
   secondary: 'border-transparent bg-secondary text-secondary-foreground',
-  outline: 'border-border text-foreground',
-  low: 'border-emerald-500/40 bg-emerald-500/15 text-emerald-200',
-  medium: 'border-amber-500/40 bg-amber-500/15 text-amber-200',
-  high: 'border-orange-500/40 bg-orange-500/15 text-orange-200',
-  critical: 'border-red-500/40 bg-red-500/15 text-red-200',
+  outline: 'border-border/60 text-foreground',
+  low: 'border-purple-300/20 bg-purple-300/8 text-purple-300',
+  medium: 'border-purple-400/25 bg-purple-400/10 text-purple-400',
+  high: 'border-purple-500/30 bg-purple-500/12 text-purple-300',
+  critical: 'border-purple-200/30 bg-purple-200/10 text-purple-100',
 };
 
 type BadgeVariant = keyof typeof variants;
@@ -21,7 +21,7 @@ export function Badge({ className, variant = 'default', ...props }: BadgeProps) 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider',
         variants[variant],
         className,
       )}

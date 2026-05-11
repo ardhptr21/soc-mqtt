@@ -6,17 +6,17 @@ interface AlertBannerProps {
   socketStatus: SocketStatus;
 }
 
-export function AlertBanner({ event, socketStatus }: AlertBannerProps) {
+export function AlertBanner({ event }: AlertBannerProps) {
   return (
-    <div className="flex min-h-14 flex-col gap-3 rounded-2xl border border-border bg-card/80 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">
-          {event ? event.description : 'No critical alert in current session'}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {event ? `${event.source_ip} via ${event.topic}` : 'Waiting for IDS or response events'}
-        </p>
-      </div>
+    <div className="rounded-2xl border border-border/40 px-5 py-4">
+      <p className="text-sm text-foreground/90">
+        {event ? event.description : 'No critical alerts in current session'}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {event
+          ? `${event.source_ip} → ${event.dest_ip || '—'} · ${event.topic}`
+          : 'Monitoring all security channels'}
+      </p>
     </div>
   );
 }

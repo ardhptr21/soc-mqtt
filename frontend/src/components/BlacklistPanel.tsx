@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
+import { X } from 'lucide-react';
 import type { BlacklistEntry } from '../lib/types';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -32,52 +33,64 @@ export function BlacklistPanel({ entries, onAdd, onDelete }: BlacklistPanelProps
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>IP Blacklist</CardTitle>
+        <div className="flex items-center gap-2.5">
+          <CardTitle className="text-base">Blocked IPs</CardTitle>
+          {entries.length > 0 && (
+            <span className="text-xs tabular-nums text-muted-foreground">
+              {entries.length}
+            </span>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={submit} className="grid gap-2 md:grid-cols-[12rem_1fr_auto]">
+        <form onSubmit={submit} className="flex flex-col gap-2.5 md:flex-row">
           <Input
             value={ip}
             onChange={(event) => setIp(event.target.value)}
-            placeholder="192.168.1.100"
+            placeholder="IP address"
+            className="md:w-44"
           />
           <Input
             value={reason}
             onChange={(event) => setReason(event.target.value)}
             placeholder="Reason"
+            className="flex-1"
           />
-          <Button type="submit" disabled={busy} className="w-full md:w-auto">
-            Add
+          <Button type="submit" disabled={busy} size="sm" className="shrink-0 h-10 px-5">
+            Block
           </Button>
         </form>
 
-        <div className="mt-4 max-h-80 overflow-auto rounded-md border border-border">
+        <div className="mt-4 max-h-80 overflow-auto rounded-xl border border-border/30">
           {entries.length === 0 ? (
-            <div className="flex h-28 items-center justify-center text-sm text-muted-foreground">
+            <div className="flex h-24 items-center justify-center text-sm text-muted-foreground">
               No blocked IPs
             </div>
           ) : (
-            <div className="divide-y divide-border">
+            <div className="divide-y divide-border/20">
               {entries.map((entry) => (
                 <div
                   key={entry.ip}
-                  className="grid gap-3 px-4 py-3 md:grid-cols-[11rem_1fr_9rem_2.5rem] md:items-center"
+                  className="flex items-center gap-4 px-4 py-3 transition-colors hover:bg-white/[0.015]"
                 >
-                  <p className="font-mono text-sm text-foreground">{entry.ip}</p>
-                  <p className="min-w-0 truncate text-sm text-muted-foreground">{entry.reason}</p>
-                  <div className="text-xs text-muted-foreground">
-                    <p>{entry.blocked_by}</p>
-                    <p>{new Date(entry.blocked_at).toLocaleTimeString()}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-mono text-sm text-foreground/90">{entry.ip}</p>
+                    <p className="mt-0.5 truncate text-xs text-muted-foreground">{entry.reason}</p>
                   </div>
-                  <Button
+
+                  <div className="hidden text-right text-[11px] text-muted-foreground sm:block">
+                    <p>{entry.blocked_by}</p>
+                    <p className="tabular-nums">{new Date(entry.blocked_at).toLocaleTimeString()}</p>
+                  </div>
+
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="icon"
                     aria-label={`Remove ${entry.ip}`}
                     onClick={() => void onDelete(entry.ip)}
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
                   >
-                    Remove
-                  </Button>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               ))}
             </div>
