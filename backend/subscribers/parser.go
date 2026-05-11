@@ -95,6 +95,10 @@ func typeFromTopic(topic string) models.EventType {
 		return models.DDoS
 	case strings.Contains(topic, "/honeypot/"):
 		return models.Honeypot
+	case strings.Contains(topic, "/edr/"):
+		return models.EDRAlert
+	case strings.Contains(topic, "/dns/"):
+		return models.DNSAnomaly
 	case strings.Contains(topic, "/auth"):
 		return models.BruteForce
 	case strings.Contains(topic, "/process"):

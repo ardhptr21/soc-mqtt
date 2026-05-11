@@ -9,6 +9,8 @@ const (
 	TopicIDSStatus      = "security/agent/ids/status"
 	TopicHoneypotStatus = "security/agent/honeypot/status"
 	TopicHostStatus     = "security/agent/host/status"
+	TopicEDRStatus      = "security/agent/edr/status"
+	TopicDNSStatus      = "security/agent/dns/status"
 
 	TopicFirewallLogs    = "security/firewall/logs"
 	TopicFirewallBlocked = "security/firewall/blocked"
@@ -21,6 +23,9 @@ const (
 
 	TopicHostAuthPattern    = "security/host/%s/auth"
 	TopicHostProcessPattern = "security/host/%s/process"
+
+	TopicEDRAlert = "security/edr/alert"
+	TopicDNSQuery = "security/dns/query"
 
 	TopicResponseBlock = "security/response/block"
 )

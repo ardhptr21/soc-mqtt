@@ -23,6 +23,8 @@ const (
 	Firewall   EventType = "firewall"
 	Traffic    EventType = "traffic"
 	Response   EventType = "response"
+	EDRAlert   EventType = "edr_alert"
+	DNSAnomaly EventType = "dns_anomaly"
 )
 
 type SecurityEvent struct {

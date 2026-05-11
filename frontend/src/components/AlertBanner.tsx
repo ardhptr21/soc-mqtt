@@ -1,6 +1,5 @@
 import type { SocketStatus } from '../hooks/useWebSocket';
 import type { SecurityEvent } from '../lib/types';
-import { Badge } from './ui/badge';
 
 interface AlertBannerProps {
   event: SecurityEvent | null;
@@ -8,8 +7,6 @@ interface AlertBannerProps {
 }
 
 export function AlertBanner({ event, socketStatus }: AlertBannerProps) {
-  const live = socketStatus === 'open';
-
   return (
     <div className="flex min-h-14 flex-col gap-3 rounded-lg border border-border bg-card px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
       <div className="min-w-0">
@@ -20,9 +17,6 @@ export function AlertBanner({ event, socketStatus }: AlertBannerProps) {
           {event ? `${event.source_ip} via ${event.topic}` : 'Waiting for IDS or response events'}
         </p>
       </div>
-      <Badge variant={live ? 'low' : 'outline'} className="w-fit uppercase">
-        {live ? 'live websocket' : socketStatus}
-      </Badge>
     </div>
   );
 }

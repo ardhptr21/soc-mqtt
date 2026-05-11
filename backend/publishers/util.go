@@ -1,16 +1,21 @@
 package publishers
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
 
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
+)
+
+var (
+	rngMu sync.Mutex
+	rng   = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
 type EventPayload struct {
@@ -62,28 +67,23 @@ func publishEvent(client *socmqtt.Client, topic string, qos byte, retained bool,
 	}
 }
 
-func randomInterval(ctx context.Context, minSeconds, maxSeconds int) bool {
-	delay := time.Duration(rand.Intn(maxSeconds-minSeconds+1)+minSeconds) * time.Second
-	timer := time.NewTimer(delay)
-	defer timer.Stop()
-	select {
-	case <-ctx.Done():
-		return false
-	case <-timer.C:
-		return true
-	}
+func randIntn(n int) int {
+	rngMu.Lock()
+	value := rng.Intn(n)
+	rngMu.Unlock()
+	return value
 }
 
 func randomIP() string {
 	ranges := []string{"10.0", "172.16", "192.168", "203.0"}
-	return fmt.Sprintf("%s.%d.%d", ranges[rand.Intn(len(ranges))], rand.Intn(255), rand.Intn(255))
+	return fmt.Sprintf("%s.%d.%d", ranges[randIntn(len(ranges))], randIntn(255), randIntn(255))
 }
 
 func randomPrivateIP() string {
-	return fmt.Sprintf("192.168.%d.%d", rand.Intn(5)+1, rand.Intn(250)+1)
+	return fmt.Sprintf("192.168.%d.%d", randIntn(5)+1, randIntn(250)+1)
 }
 
 func randomPort() int {
 	ports := []int{22, 23, 53, 80, 443, 445, 1433, 3306, 3389, 5432, 6379, 8080}
-	return ports[rand.Intn(len(ports))]
+	return ports[randIntn(len(ports))]
 }

@@ -3,13 +3,12 @@ package publishers
 import (
 	"context"
 	"log"
-	"math/rand"
 
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartFirewall(ctx context.Context, brokerURL string) error {
+func StartFirewall(ctx context.Context, brokerURL string, sim *Simulator) error {
 	agent := Agent{
 		Name:        "firewall",
 		ClientID:    "publisher-firewall-agent",
@@ -24,8 +23,9 @@ func StartFirewall(ctx context.Context, brokerURL string) error {
 
 	go func() {
 		log.Printf("[publisher:firewall] started")
-		for randomInterval(ctx, 1, 3) {
-			blocked := rand.Intn(100) < 25
+		profile := sim.Profile()
+		for sim.Delay(ctx, 1, 3) {
+			blocked := sim.Chance(profile.BlockChance)
 			action := "ALLOW"
 			severity := models.Low
 			eventType := models.Firewall
@@ -51,7 +51,7 @@ func StartFirewall(ctx context.Context, brokerURL string) error {
 				Description: description,
 				Agent:       "firewall",
 				Action:      action,
-				Protocol:    []string{"TCP", "UDP"}[rand.Intn(2)],
+				Protocol:    []string{"TCP", "UDP"}[randIntn(2)],
 			})
 		}
 	}()

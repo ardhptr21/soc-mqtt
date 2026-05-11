@@ -28,7 +28,7 @@ func main() {
 		log.Fatalf("start incident bot: %v", err)
 	}
 	if cfg.PublisherEnabled {
-		if err := publishers.StartAll(ctx, cfg.MQTTURL()); err != nil {
+		if err := publishers.StartAll(ctx, cfg); err != nil {
 			log.Fatalf("start publishers: %v", err)
 		}
 	}

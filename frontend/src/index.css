@@ -8,24 +8,30 @@
     --foreground: 0 0% 9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 217 91% 55%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 0 0% 96%;
     --secondary-foreground: 0 0% 9%;
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 216 100% 96%;
+    --accent-foreground: 216 45% 25%;
     --destructive: 0 0% 20%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 90%;
     --input: 0 0% 90%;
-    --ring: 0 0% 9%;
+    --ring: 217 91% 55%;
     --radius: 0.5rem;
   }
 
   * {
     @apply border-border;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
   }
 
   body {

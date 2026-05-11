@@ -3,13 +3,12 @@ package publishers
 import (
 	"context"
 	"log"
-	"math/rand"
 
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartHoneypot(ctx context.Context, brokerURL string) error {
+func StartHoneypot(ctx context.Context, brokerURL string, sim *Simulator) error {
 	agent := Agent{
 		Name:        "honeypot",
 		ClientID:    "publisher-honeypot-agent",
@@ -30,7 +29,7 @@ func StartHoneypot(ctx context.Context, brokerURL string) error {
 			"admin:admin credential attempt",
 			"/bin/busybox telnet brute force",
 		}
-		for randomInterval(ctx, 5, 15) {
+		for sim.Delay(ctx, 5, 15) {
 			source := randomIP()
 			publishEvent(client, socmqtt.TopicHoneypotHit, socmqtt.QoSAtLeastOnce, true, EventPayload{
 				Type:        models.Honeypot,
@@ -49,7 +48,7 @@ func StartHoneypot(ctx context.Context, brokerURL string) error {
 				Port:        23,
 				Description: "Honeypot captured attack payload",
 				Agent:       "honeypot",
-				Payload:     payloads[rand.Intn(len(payloads))],
+				Payload:     payloads[randIntn(len(payloads))],
 			})
 		}
 	}()

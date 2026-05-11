@@ -1,13 +1,19 @@
-import type { AgentStatus as Agent } from '../lib/types';
+import type { AgentStatus as Agent, SecurityEvent } from '../lib/types';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 
-const expectedAgents = ['firewall', 'ids', 'honeypot', 'host'];
+const expectedAgents = ['firewall', 'ids', 'honeypot', 'host', 'edr', 'dns'];
 
 interface AgentStatusProps {
   agents: Agent[];
+  events: SecurityEvent[];
 }
 
-export function AgentStatus({ agents }: AgentStatusProps) {
+export function AgentStatus({ agents, events }: AgentStatusProps) {
+  const counts = events.reduce<Record<string, number>>((acc, event) => {
+    const key = event.agent || 'unknown';
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
   const normalized = expectedAgents.map((name) => {
     return (
       agents.find((agent) => agent.name === name) ?? {
@@ -24,21 +30,24 @@ export function AgentStatus({ agents }: AgentStatusProps) {
         <CardTitle>Agent Status</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {normalized.map((agent) => {
             const online = agent.status === 'online';
+            const count = counts[agent.name] ?? 0;
             return (
               <div
                 key={agent.name}
-                className="flex min-h-20 items-center gap-3 rounded-md border border-border bg-background/60 px-3"
+                className="flex min-h-20 items-center justify-between gap-3 rounded-md border border-border bg-background/60 px-3"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium capitalize">{agent.name}</p>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="text-xs text-muted-foreground">
-                      {online ? 'online' : 'offline'}
-                    </span>
+                  <div className="mt-1 text-xs text-muted-foreground">
+                    <span>{online ? 'online' : 'offline'}</span>
                   </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-xl font-semibold text-foreground">{count}</p>
+                  <p className="text-xs text-muted-foreground">events</p>
                 </div>
               </div>
             );
