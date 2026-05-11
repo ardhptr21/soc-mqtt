@@ -42,3 +42,35 @@ export async function addBlacklist(ip: string, reason: string) {
 export async function removeBlacklist(ip: string) {
   await client.delete(`/api/blacklist/${encodeURIComponent(ip)}`);
 }
+
+// ─── Kill Chain ───
+
+export async function triggerKillChain() {
+  const { data } = await client.post('/api/killchain/trigger');
+  return data;
+}
+
+// ─── Simulation Settings ───
+
+export interface SimSettings {
+  scenario: string;
+  rate_multiplier: number;
+  burst_chance: number;
+}
+
+export async function getSimulationSettings() {
+  const { data } = await client.get<SimSettings>('/api/simulation');
+  return data;
+}
+
+export async function updateSimulationSettings(settings: Partial<SimSettings>) {
+  const { data } = await client.put<SimSettings>('/api/simulation', settings);
+  return data;
+}
+
+// ─── Chaos Engineering ───
+
+export async function chaosToggle(agent: string, online: boolean) {
+  const { data } = await client.post('/api/chaos/toggle', { agent, online });
+  return data;
+}

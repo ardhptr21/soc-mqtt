@@ -91,6 +91,37 @@ func (s *Simulator) Profile() ScenarioProfile {
 	return s.profile
 }
 
+// SimSettings represents the tunable runtime parameters.
+type SimSettings struct {
+	Scenario       string  `json:"scenario"`
+	RateMultiplier float64 `json:"rate_multiplier"`
+	BurstChance    float64 `json:"burst_chance"`
+}
+
+func (s *Simulator) Settings() SimSettings {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return SimSettings{
+		Scenario:       s.profile.Name,
+		RateMultiplier: s.rateMultiplier,
+		BurstChance:    s.burstChance,
+	}
+}
+
+func (s *Simulator) SetSettings(settings SimSettings) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if settings.Scenario != "" {
+		s.profile = scenarioProfile(settings.Scenario)
+	}
+	if settings.RateMultiplier > 0 {
+		s.rateMultiplier = clampFloat(settings.RateMultiplier, 0.1, 10.0)
+	}
+	if settings.BurstChance >= 0 {
+		s.burstChance = clampFloat(settings.BurstChance, 0.0, 0.8)
+	}
+}
+
 func (s *Simulator) float64() float64 {
 	s.mu.Lock()
 	value := s.rand.Float64()

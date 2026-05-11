@@ -10,22 +10,24 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"soc-mqtt-simulator/backend/config"
+	"soc-mqtt-simulator/backend/publishers"
 	"soc-mqtt-simulator/backend/store"
 )
 
-func NewServer(cfg config.Config, store *store.Store, hub *Hub) *http.Server {
+func NewServer(cfg config.Config, store *store.Store, hub *Hub, sim *publishers.Simulator) *http.Server {
 	gin.SetMode(gin.ReleaseMode)
 
 	router := gin.New()
 	router.Use(gin.Logger(), gin.Recovery())
 	router.Use(cors.New(cors.Config{
 		AllowAllOrigins:  true,
-		AllowMethods:     []string{"GET", "POST", "DELETE", "OPTIONS"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: false,
 	}))
 
 	NewREST(store, hub).Register(router)
+	NewFeatures(store, hub, cfg, sim).Register(router)
 
 	return &http.Server{
 		Addr:         ":" + cfg.HTTPPort,

@@ -7,7 +7,7 @@ import (
 	"soc-mqtt-simulator/backend/config"
 )
 
-func StartAll(ctx context.Context, cfg config.Config) error {
+func StartAll(ctx context.Context, cfg config.Config) (*Simulator, error) {
 	sim := NewSimulator(
 		time.Now().UnixNano(),
 		cfg.Scenario,
@@ -25,11 +25,12 @@ func StartAll(ctx context.Context, cfg config.Config) error {
 		StartEDR,
 		StartDNS,
 		StartScenarioCoordinator,
+		StartInsiderThreat,
 	}
 	for _, start := range starts {
 		if err := start(ctx, cfg.MQTTURL(), sim); err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return sim, nil
 }

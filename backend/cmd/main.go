@@ -27,13 +27,17 @@ func main() {
 	if err := subscribers.StartIncidentBot(ctx, cfg.MQTTURL(), appStore, hub); err != nil {
 		log.Fatalf("start incident bot: %v", err)
 	}
+
+	var sim *publishers.Simulator
 	if cfg.PublisherEnabled {
-		if err := publishers.StartAll(ctx, cfg); err != nil {
+		var err error
+		sim, err = publishers.StartAll(ctx, cfg)
+		if err != nil {
 			log.Fatalf("start publishers: %v", err)
 		}
 	}
 
-	server := api.NewServer(cfg, appStore, hub)
+	server := api.NewServer(cfg, appStore, hub, sim)
 	if err := api.Run(ctx, server); err != nil {
 		log.Fatalf("api server stopped: %v", err)
 	}

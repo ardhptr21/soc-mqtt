@@ -1,17 +1,27 @@
 import { useState } from 'react';
-import { BarChart3, ListChecks, Server, ShieldAlert, RefreshCw } from 'lucide-react';
+import {
+  BarChart3,
+  Globe,
+  ListChecks,
+  Server,
+  ShieldAlert,
+  RefreshCw,
+} from 'lucide-react';
 import { AlertBanner } from '../components/AlertBanner';
 import { AgentStatus } from '../components/AgentStatus';
+import { SimulationSettings } from '../components/SimulationSettings';
 import { BlacklistPanel } from '../components/BlacklistPanel';
 import { EventFeed } from '../components/EventFeed';
 import { SeverityChart } from '../components/SeverityChart';
 import { ThreatCounter } from '../components/ThreatCounter';
+import { TopologyMap } from '../components/TopologyMap';
 import { useEvents } from '../hooks/useEvents';
 
-type SectionKey = 'overview' | 'agents' | 'events' | 'blacklist';
+type SectionKey = 'overview' | 'topology' | 'agents' | 'events' | 'blacklist';
 
 const sections: { key: SectionKey; label: string; icon: typeof ShieldAlert }[] = [
   { key: 'overview', label: 'Overview', icon: BarChart3 },
+  { key: 'topology', label: 'Topology', icon: Globe },
   { key: 'agents', label: 'Agents', icon: Server },
   { key: 'events', label: 'Events', icon: ListChecks },
   { key: 'blacklist', label: 'Blacklist', icon: ShieldAlert },
@@ -102,9 +112,9 @@ export function Dashboard() {
               key={item.key}
               type="button"
               onClick={() => setSection(item.key)}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-[13px] transition-colors ${
+              className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] transition-colors ${
                 section === item.key
-                  ? 'bg-white/[0.07] font-medium text-foreground'
+                  ? 'bg-lime-400/[0.08] font-medium text-lime-300/90'
                   : 'text-muted-foreground'
               }`}
             >
@@ -152,8 +162,15 @@ export function Dashboard() {
             </>
           )}
 
+          {section === 'topology' && (
+            <TopologyMap events={events} agents={agents} />
+          )}
+
           {section === 'agents' && (
-            <AgentStatus agents={agents} events={events} />
+            <div className="flex flex-col gap-5">
+              <SimulationSettings />
+              <AgentStatus agents={agents} events={events} />
+            </div>
           )}
 
           {section === 'events' && (

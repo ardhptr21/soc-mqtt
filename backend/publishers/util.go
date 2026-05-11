@@ -79,6 +79,11 @@ func randomIP() string {
 	return fmt.Sprintf("%s.%d.%d", ranges[randIntn(len(ranges))], randIntn(255), randIntn(255))
 }
 
+// ExportRandomIP is the exported version for use by other packages.
+func ExportRandomIP() string {
+	return randomIP()
+}
+
 func randomPrivateIP() string {
 	return fmt.Sprintf("192.168.%d.%d", randIntn(5)+1, randIntn(250)+1)
 }
