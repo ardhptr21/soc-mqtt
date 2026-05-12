@@ -21,10 +21,10 @@ func main() {
 	appStore := store.New(cfg.HistoryLimit)
 	hub := api.NewHub()
 
-	if err := subscribers.StartSOCDashboard(ctx, cfg.MQTTURL(), appStore, hub); err != nil {
+	if err := subscribers.StartSOCDashboard(ctx, cfg.MQTTURL(), cfg.SharedSubGroup, appStore, hub); err != nil {
 		log.Fatalf("start dashboard subscriber: %v", err)
 	}
-	if err := subscribers.StartIncidentBot(ctx, cfg.MQTTURL(), appStore, hub); err != nil {
+	if err := subscribers.StartIncidentBot(ctx, cfg.MQTTURL(), cfg.SharedSubGroup, appStore, hub); err != nil {
 		log.Fatalf("start incident bot: %v", err)
 	}
 

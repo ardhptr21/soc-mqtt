@@ -26,11 +26,8 @@ func NewFeatures(s *store.Store, hub *Hub, cfg config.Config, sim *publishers.Si
 
 func (f *Features) Register(router *gin.Engine) {
 	g := router.Group("/api")
-	// Kill chain
 	g.POST("/killchain/trigger", f.triggerKillChain)
-	// Chaos: toggle agents
 	g.POST("/chaos/toggle", f.chaosToggle)
-	// Simulation settings
 	g.GET("/simulation", f.getSimulation)
 	g.PUT("/simulation", f.putSimulation)
 }

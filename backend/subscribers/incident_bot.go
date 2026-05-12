@@ -4,7 +4,7 @@ import (
 	"context"
 	"log"
 
-	paho "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.golang/paho"
 	"github.com/google/uuid"
 
 	"soc-mqtt-simulator/backend/api"
@@ -13,7 +13,7 @@ import (
 	"soc-mqtt-simulator/backend/store"
 )
 
-func StartIncidentBot(ctx context.Context, brokerURL string, store *store.Store, hub *api.Hub) error {
+func StartIncidentBot(ctx context.Context, brokerURL string, sharedGroup string, store *store.Store, hub *api.Hub) error {
 	client, err := socmqtt.NewClient(socmqtt.Options{
 		BrokerURL:     brokerURL,
 		ClientID:      "incident-response-bot",
@@ -24,13 +24,16 @@ func StartIncidentBot(ctx context.Context, brokerURL string, store *store.Store,
 		return err
 	}
 
-	handler := func(_ paho.Client, msg paho.Message) {
-		event, ok := parseEvent(msg.Topic(), msg.Qos(), msg.Payload())
+	handler := func(pr paho.PublishReceived) error {
+		// Access the publish packet
+		publish := pr.Packet
+
+		event, ok := parseEvent(publish.Topic, publish.QoS, publish.Payload)
 		if !ok {
-			return
+			return nil
 		}
 		if event.SourceIP == "" || (event.Severity != models.Critical && event.Severity != models.High) {
-			return
+			return nil
 		}
 
 		entry := store.AddBlacklist(models.BlacklistEntry{
@@ -57,12 +60,17 @@ func StartIncidentBot(ctx context.Context, brokerURL string, store *store.Store,
 
 		if err := client.Publish(socmqtt.TopicResponseBlock, socmqtt.QoSExactlyOnce, false, entry); err != nil {
 			log.Printf("[incident_bot] failed publish block command: %v", err)
-			return
+			return err
 		}
 		log.Printf("[incident_bot] blocked %s because %s", entry.IP, entry.Reason)
+		return nil
 	}
 
-	if err := client.Subscribe(socmqtt.TopicAllAlerts, socmqtt.QoSExactlyOnce, handler); err != nil {
+	topic := socmqtt.TopicAllAlerts
+	if sharedGroup != "" {
+		topic = "$share/" + sharedGroup + "/" + topic
+	}
+	if err := client.Subscribe(topic, socmqtt.QoSExactlyOnce, handler); err != nil {
 		client.Disconnect()
 		return err
 	}
