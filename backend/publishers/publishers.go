@@ -17,7 +17,7 @@ func StartAll(ctx context.Context, cfg config.Config) (*Simulator, error) {
 		cfg.BurstMaxSeconds,
 	)
 
-	starts := []func(context.Context, string, *Simulator) error{
+	starts := []func(context.Context, string, *Simulator, config.Config) error{
 		StartFirewall,
 		StartIDS,
 		StartHoneypot,
@@ -28,7 +28,7 @@ func StartAll(ctx context.Context, cfg config.Config) (*Simulator, error) {
 		StartInsiderThreat,
 	}
 	for _, start := range starts {
-		if err := start(ctx, cfg.MQTTURL(), sim); err != nil {
+		if err := start(ctx, cfg.MQTTURL(), sim, cfg); err != nil {
 			return nil, err
 		}
 	}

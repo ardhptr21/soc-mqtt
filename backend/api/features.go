@@ -44,7 +44,7 @@ func (f *Features) triggerKillChain(c *gin.Context) {
 		<-ctx.Done()
 		cancel()
 	}()
-	if err := publishers.StartKillChain(ctx, f.cfg.MQTTURL(), f.sim); err != nil {
+	if err := publishers.StartKillChain(ctx, f.cfg.MQTTURL(), f.sim, f.cfg); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

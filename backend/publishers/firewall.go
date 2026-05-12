@@ -4,18 +4,19 @@ import (
 	"context"
 	"log"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartFirewall(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartFirewall(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	agent := Agent{
 		Name:        "firewall",
 		ClientID:    "publisher-firewall-agent",
 		StatusTopic: socmqtt.TopicFirewallStatus,
 		BrokerURL:   brokerURL,
 	}
-	client, err := agent.connect()
+	client, err := agent.connect(cfg)
 	if err != nil {
 		return err
 	}

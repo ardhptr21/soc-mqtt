@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"log"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
 // StartInsiderThreat generates events that mimic legitimate user activity with
 // subtle anomalies — off-hours access, unusual data volumes, privilege escalation.
-func StartInsiderThreat(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartInsiderThreat(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	client, err := socmqtt.NewClient(socmqtt.Options{
 		BrokerURL:     brokerURL,
 		ClientID:      "publisher-insider",

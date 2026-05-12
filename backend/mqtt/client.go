@@ -15,12 +15,34 @@ import (
 	"github.com/google/uuid"
 )
 
+/*
+PUBLISH PROPERTIES
+*/
 type PublishProps struct {
+	/*
+		MESSAGE EXPIRY
+	*/
 	MessageExpirySeconds uint32
-	TopicAlias           uint16
-	ResponseTopic        string
-	CorrelationData      []byte
-	UserProperties       map[string]string
+
+	/*
+		TOPIC ALIAS
+	*/
+	TopicAlias uint16
+
+	/*
+		REQUEST-RESPONSE PATTERN
+	*/
+	ResponseTopic string
+
+	/*
+		REQUEST-RESPONSE PATTERN (Correlation ID)
+	*/
+	CorrelationData []byte
+
+	/*
+		USER PROPERTIES (Metadata)
+	*/
+	UserProperties map[string]string
 }
 
 type MessageHandler func(pr paho.PublishReceived) error
@@ -145,14 +167,30 @@ func NewClient(opts Options) (*Client, error) {
 	return c, nil
 }
 
+/*
+LAST WILL TESTAMENT (LWT)
+*/
 func NewAgentClient(brokerURL, clientID, statusTopic string) (*Client, error) {
 	return NewClient(Options{
-		BrokerURL:     brokerURL,
-		ClientID:      clientID,
-		CleanSession:  true,
-		WillTopic:     statusTopic,
-		WillPayload:   "offline",
-		WillQoS:       QoSAtLeastOnce,
+		BrokerURL:    brokerURL,
+		ClientID:     clientID,
+		CleanSession: true,
+		/*
+			LAST WILL TESTAMENT - Topic
+		*/
+		WillTopic: statusTopic,
+		/*
+			LAST WILL TESTAMENT - Payload
+		*/
+		WillPayload: "offline",
+		/*
+			LAST WILL TESTAMENT - QoS
+			QoS 1 = at-least-once
+		*/
+		WillQoS: QoSAtLeastOnce,
+		/*
+			LAST WILL TESTAMENT - Retain
+		*/
 		WillRetained:  true,
 		AutoReconnect: true,
 	})
@@ -162,6 +200,9 @@ func (c *Client) Publish(topic string, qos byte, retained bool, payload any) err
 	return c.PublishEx(topic, qos, retained, payload, PublishProps{})
 }
 
+/*
+PUBLISH EXTENDED
+*/
 func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, props PublishProps) error {
 	var body []byte
 	switch value := payload.(type) {
@@ -177,6 +218,9 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 		body = encoded
 	}
 
+	/*
+		FLOW CONTROL (Rate Limiting)
+	*/
 	if c.publishTokens != nil {
 		select {
 		case <-c.publishTokens:
@@ -185,9 +229,16 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 		}
 	}
 
+	/*
+		MESSAGE EXPIRY
+	*/
 	if props.MessageExpirySeconds == 0 && c.defaultExpiry != 0 {
 		props.MessageExpirySeconds = c.defaultExpiry
 	}
+
+	/*
+		TOPIC ALIAS
+	*/
 	if props.TopicAlias == 0 && c.defaultAlias != 0 {
 		props.TopicAlias = c.defaultAlias
 	}
@@ -202,26 +253,41 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 	if props.MessageExpirySeconds != 0 || props.TopicAlias != 0 || props.ResponseTopic != "" || len(props.CorrelationData) != 0 || len(props.UserProperties) != 0 {
 		publish.Properties = &paho.PublishProperties{}
 
+		/*
+			MESSAGE EXPIRY - Application
+		*/
 		if props.MessageExpirySeconds != 0 {
 			expiryInterval := props.MessageExpirySeconds
 			publish.Properties.MessageExpiry = &expiryInterval
 			log.Printf("[mqtt:%s] publish to %s with message expiry=%d seconds", c.id, topic, expiryInterval)
 		}
 
+		/*
+			TOPIC ALIAS - Application
+		*/
 		if props.TopicAlias != 0 {
 			alias := props.TopicAlias
 			publish.Properties.TopicAlias = &alias
 			log.Printf("[mqtt:%s] publish to %s with topic alias=%d", c.id, topic, alias)
 		}
 
+		/*
+			REQUEST-RESPONSE PATTERN - Response Topic
+		*/
 		if props.ResponseTopic != "" {
 			publish.Properties.ResponseTopic = props.ResponseTopic
 		}
 
+		/*
+			REQUEST-RESPONSE PATTERN - Correlation Data
+		*/
 		if len(props.CorrelationData) != 0 {
 			publish.Properties.CorrelationData = append([]byte(nil), props.CorrelationData...)
 		}
 
+		/*
+			USER PROPERTIES - Application
+		*/
 		if len(props.UserProperties) != 0 {
 			for key, value := range props.UserProperties {
 				publish.Properties.User.Add(key, value)
@@ -244,16 +310,25 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 	return nil
 }
 
+/*
+REQUEST-RESPONSE PATTERN
+*/
 func (c *Client) Request(ctx context.Context, topic string, qos byte, retained bool, payload any, props PublishProps) (*paho.PublishReceived, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
+	/*
+		REQUEST-RESPONSE PATTERN - Response Topic Generation
+	*/
 	responseTopic := props.ResponseTopic
 	if responseTopic == "" {
 		responseTopic = "$reply/" + c.id + "/" + uuid.NewString()
 	}
 
+	/*
+		REQUEST-RESPONSE PATTERN - Correlation ID Generation
+	*/
 	correlationData := props.CorrelationData
 	if len(correlationData) == 0 {
 		correlationData = []byte(uuid.NewString())
@@ -310,6 +385,9 @@ func (c *Client) Request(ctx context.Context, topic string, qos byte, retained b
 	}
 }
 
+/*
+REQUEST-RESPONSE PATTERN
+*/
 func (c *Client) Reply(request paho.PublishReceived, qos byte, retained bool, payload any, props PublishProps) error {
 	if request.Packet == nil {
 		return fmt.Errorf("request packet is nil")
@@ -318,6 +396,9 @@ func (c *Client) Reply(request paho.PublishReceived, qos byte, retained bool, pa
 		return fmt.Errorf("request missing response topic")
 	}
 
+	/*
+		REQUEST-RESPONSE PATTERN - Reply Properties
+	*/
 	replyProps := props
 	replyProps.ResponseTopic = ""
 	if len(replyProps.CorrelationData) == 0 {

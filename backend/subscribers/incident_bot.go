@@ -65,8 +65,9 @@ func StartIncidentBot(ctx context.Context, brokerURL string, sharedGroup string,
 		log.Printf("[incident_bot] blocked %s because %s", entry.IP, entry.Reason)
 		return nil
 	}
-
-	topic := socmqtt.TopicAllAlerts
+	/*
+		SHARED SUBSCRIPTIONS
+	*/topic := socmqtt.TopicAllAlerts
 	if sharedGroup != "" {
 		topic = "$share/" + sharedGroup + "/" + topic
 	}

@@ -53,6 +53,9 @@ func StartSOCDashboard(ctx context.Context, brokerURL string, sharedGroup string
 		return nil
 	}
 
+	/*
+		SHARED SUBSCRIPTIONS
+	*/
 	topic := socmqtt.TopicSecurityAll
 	if sharedGroup != "" {
 		topic = "$share/" + sharedGroup + "/" + topic

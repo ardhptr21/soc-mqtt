@@ -4,18 +4,19 @@ import (
 	"context"
 	"log"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartDNS(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartDNS(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	agent := Agent{
 		Name:        "dns",
 		ClientID:    "publisher-dns-agent",
 		StatusTopic: socmqtt.TopicDNSStatus,
 		BrokerURL:   brokerURL,
 	}
-	client, err := agent.connect()
+	client, err := agent.connect(cfg)
 	if err != nil {
 		return err
 	}

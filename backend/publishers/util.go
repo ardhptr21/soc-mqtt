@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/google/uuid"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
@@ -44,8 +46,43 @@ type Agent struct {
 	BrokerURL   string
 }
 
-func (a Agent) connect() (*socmqtt.Client, error) {
-	client, err := socmqtt.NewAgentClient(a.BrokerURL, a.ClientID, a.StatusTopic)
+/*
+AGENT MQTT CLIENT SETUP
+*/
+func (a Agent) connect(cfg config.Config) (*socmqtt.Client, error) {
+	alias := 0
+	if cfg.EnableTopicAlias {
+		alias = cfg.TopicAlias
+	}
+	client, err := socmqtt.NewClient(socmqtt.Options{
+		BrokerURL:    a.BrokerURL,
+		ClientID:     a.ClientID,
+		CleanSession: true,
+		/*
+			LAST WILL TESTAMENT
+		*/
+		WillTopic:     a.StatusTopic,
+		WillPayload:   "offline",
+		WillQoS:       socmqtt.QoSAtLeastOnce,
+		WillRetained:  true, // Keep status persisted
+		AutoReconnect: true,
+		/*
+			FLOW CONTROL (Rate Limiting)
+		*/
+		PublishRatePerS: cfg.PublishRatePerSecond,
+		/*
+			FLOW CONTROL (Timeout)
+		*/
+		PublishTimeoutMs: cfg.PublishTimeoutMs,
+		/*
+			MESSAGE EXPIRY
+		*/
+		DefaultMessageExpirySecs: cfg.MessageExpirySecs,
+		/*
+			TOPIC ALIAS
+		*/
+		DefaultTopicAlias: alias,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +92,9 @@ func (a Agent) connect() (*socmqtt.Client, error) {
 	return client, nil
 }
 
+/*
+EVENT PUBLISHING WITH METADATA
+*/
 func publishEvent(client *socmqtt.Client, topic string, qos byte, retained bool, payload EventPayload) {
 	if payload.ID == "" {
 		payload.ID = uuid.NewString()
@@ -62,7 +102,49 @@ func publishEvent(client *socmqtt.Client, topic string, qos byte, retained bool,
 	if payload.Timestamp.IsZero() {
 		payload.Timestamp = time.Now().UTC()
 	}
-	if err := client.Publish(topic, qos, retained, payload); err != nil {
+
+	/*
+		USER PROPERTIES (Metadata Key-Value Pairs)
+	*/
+	props := socmqtt.PublishProps{
+		UserProperties: map[string]string{
+			"agent":       payload.Agent,
+			"event_type":  string(payload.Type),
+			"severity":    string(payload.Severity),
+			"source_ip":   payload.SourceIP,
+			"dest_ip":     payload.DestIP,
+			"description": payload.Description,
+		},
+	}
+	if payload.Action != "" {
+		props.UserProperties["action"] = payload.Action
+	}
+	if payload.Protocol != "" {
+		props.UserProperties["protocol"] = payload.Protocol
+	}
+	if payload.Hostname != "" {
+		props.UserProperties["hostname"] = payload.Hostname
+	}
+	if payload.Process != "" {
+		props.UserProperties["process"] = payload.Process
+	}
+	if payload.Payload != "" {
+		props.UserProperties["payload"] = payload.Payload
+	}
+	if payload.BytesIn > 0 {
+		props.UserProperties["bytes_in"] = strconv.Itoa(payload.BytesIn)
+	}
+	if payload.BytesOut > 0 {
+		props.UserProperties["bytes_out"] = strconv.Itoa(payload.BytesOut)
+	}
+	if payload.Port > 0 {
+		props.UserProperties["port"] = strconv.Itoa(payload.Port)
+	}
+
+	/*
+		RETAINED MESSAGES
+	*/
+	if err := client.PublishEx(topic, qos, retained, payload, props); err != nil {
 		log.Printf("[publisher] failed publish %s: %v", topic, err)
 	}
 }

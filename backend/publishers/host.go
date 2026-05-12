@@ -5,18 +5,19 @@ import (
 	"fmt"
 	"log"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartHost(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartHost(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	agent := Agent{
 		Name:        "host",
 		ClientID:    "publisher-host-agent",
 		StatusTopic: socmqtt.TopicHostStatus,
 		BrokerURL:   brokerURL,
 	}
-	client, err := agent.connect()
+	client, err := agent.connect(cfg)
 	if err != nil {
 		return err
 	}

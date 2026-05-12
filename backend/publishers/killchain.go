@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
@@ -107,12 +108,21 @@ var killChainStages = []KillChainStage{
 
 // StartKillChain runs a single kill-chain attack sequence, then stops.
 // It can be triggered via API on demand.
-func StartKillChain(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartKillChain(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	client, err := socmqtt.NewClient(socmqtt.Options{
-		BrokerURL:     brokerURL,
-		ClientID:      "publisher-killchain",
-		CleanSession:  true,
-		AutoReconnect: true,
+		BrokerURL:                brokerURL,
+		ClientID:                 "publisher-killchain",
+		CleanSession:             true,
+		AutoReconnect:            true,
+		PublishRatePerS:          cfg.PublishRatePerSecond,
+		PublishTimeoutMs:         cfg.PublishTimeoutMs,
+		DefaultMessageExpirySecs: cfg.MessageExpirySecs,
+		DefaultTopicAlias: func() int {
+			if cfg.EnableTopicAlias {
+				return cfg.TopicAlias
+			}
+			return 0
+		}(),
 	})
 	if err != nil {
 		return err

@@ -4,18 +4,19 @@ import (
 	"context"
 	"log"
 
+	"soc-mqtt-simulator/backend/config"
 	"soc-mqtt-simulator/backend/models"
 	socmqtt "soc-mqtt-simulator/backend/mqtt"
 )
 
-func StartEDR(ctx context.Context, brokerURL string, sim *Simulator) error {
+func StartEDR(ctx context.Context, brokerURL string, sim *Simulator, cfg config.Config) error {
 	agent := Agent{
 		Name:        "edr",
 		ClientID:    "publisher-edr-agent",
 		StatusTopic: socmqtt.TopicEDRStatus,
 		BrokerURL:   brokerURL,
 	}
-	client, err := agent.connect()
+	client, err := agent.connect(cfg)
 	if err != nil {
 		return err
 	}
