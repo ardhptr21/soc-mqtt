@@ -1,6 +1,7 @@
 package mqtt
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,11 +12,15 @@ import (
 	"time"
 
 	"github.com/eclipse/paho.golang/paho"
+	"github.com/google/uuid"
 )
 
 type PublishProps struct {
 	MessageExpirySeconds uint32
 	TopicAlias           uint16
+	ResponseTopic        string
+	CorrelationData      []byte
+	UserProperties       map[string]string
 }
 
 type MessageHandler func(pr paho.PublishReceived) error
@@ -194,7 +199,7 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 		Payload: body,
 	}
 
-	if props.MessageExpirySeconds != 0 || props.TopicAlias != 0 {
+	if props.MessageExpirySeconds != 0 || props.TopicAlias != 0 || props.ResponseTopic != "" || len(props.CorrelationData) != 0 || len(props.UserProperties) != 0 {
 		publish.Properties = &paho.PublishProperties{}
 
 		if props.MessageExpirySeconds != 0 {
@@ -207,6 +212,20 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 			alias := props.TopicAlias
 			publish.Properties.TopicAlias = &alias
 			log.Printf("[mqtt:%s] publish to %s with topic alias=%d", c.id, topic, alias)
+		}
+
+		if props.ResponseTopic != "" {
+			publish.Properties.ResponseTopic = props.ResponseTopic
+		}
+
+		if len(props.CorrelationData) != 0 {
+			publish.Properties.CorrelationData = append([]byte(nil), props.CorrelationData...)
+		}
+
+		if len(props.UserProperties) != 0 {
+			for key, value := range props.UserProperties {
+				publish.Properties.User.Add(key, value)
+			}
 		}
 	}
 
@@ -223,6 +242,89 @@ func (c *Client) PublishEx(topic string, qos byte, retained bool, payload any, p
 	}
 
 	return nil
+}
+
+func (c *Client) Request(ctx context.Context, topic string, qos byte, retained bool, payload any, props PublishProps) (*paho.PublishReceived, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	responseTopic := props.ResponseTopic
+	if responseTopic == "" {
+		responseTopic = "$reply/" + c.id + "/" + uuid.NewString()
+	}
+
+	correlationData := props.CorrelationData
+	if len(correlationData) == 0 {
+		correlationData = []byte(uuid.NewString())
+	}
+
+	requestProps := props
+	requestProps.ResponseTopic = responseTopic
+	requestProps.CorrelationData = correlationData
+
+	responseCh := make(chan paho.PublishReceived, 1)
+	removeHandler := c.client.AddOnPublishReceived(func(pr paho.PublishReceived) (bool, error) {
+		if pr.Packet == nil || pr.Packet.Topic != responseTopic {
+			return false, nil
+		}
+		if pr.Packet.Properties != nil && len(correlationData) != 0 && len(pr.Packet.Properties.CorrelationData) != 0 {
+			if !bytes.Equal(pr.Packet.Properties.CorrelationData, correlationData) {
+				return false, nil
+			}
+		}
+
+		select {
+		case responseCh <- pr:
+		default:
+		}
+		return true, nil
+	})
+	defer removeHandler()
+
+	subscribeCtx, cancelSubscribe := context.WithTimeout(ctx, c.publishTimeout)
+	defer cancelSubscribe()
+
+	sub := &paho.Subscribe{
+		Subscriptions: []paho.SubscribeOptions{{Topic: responseTopic, QoS: qos}},
+	}
+	if _, err := c.client.Subscribe(subscribeCtx, sub); err != nil {
+		return nil, fmt.Errorf("error subscribing to response topic %s: %w", responseTopic, err)
+	}
+
+	defer func() {
+		unsubscribeCtx, cancelUnsubscribe := context.WithTimeout(context.Background(), c.publishTimeout)
+		defer cancelUnsubscribe()
+		_, _ = c.client.Unsubscribe(unsubscribeCtx, &paho.Unsubscribe{Topics: []string{responseTopic}})
+	}()
+
+	if err := c.PublishEx(topic, qos, retained, payload, requestProps); err != nil {
+		return nil, err
+	}
+
+	select {
+	case response := <-responseCh:
+		return &response, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
+}
+
+func (c *Client) Reply(request paho.PublishReceived, qos byte, retained bool, payload any, props PublishProps) error {
+	if request.Packet == nil {
+		return fmt.Errorf("request packet is nil")
+	}
+	if request.Packet.Properties == nil || request.Packet.Properties.ResponseTopic == "" {
+		return fmt.Errorf("request missing response topic")
+	}
+
+	replyProps := props
+	replyProps.ResponseTopic = ""
+	if len(replyProps.CorrelationData) == 0 {
+		replyProps.CorrelationData = request.Packet.Properties.CorrelationData
+	}
+
+	return c.PublishEx(request.Packet.Properties.ResponseTopic, qos, retained, payload, replyProps)
 }
 
 func (c *Client) Subscribe(topic string, qos byte, handler MessageHandler) error {
